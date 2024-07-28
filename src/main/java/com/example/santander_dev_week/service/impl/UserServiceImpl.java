@@ -1,9 +1,10 @@
 package com.example.santander_dev_week.service.impl;
 
-import com.example.santander_dev_week.model.BaseItem;
+import com.example.santander_dev_week.dto.UserDTO;
 import com.example.santander_dev_week.model.User;
 import com.example.santander_dev_week.repository.UserRepository;
 import com.example.santander_dev_week.service.UserService;
+import org.springframework.beans.BeanUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
@@ -15,16 +16,18 @@ public class UserServiceImpl implements UserService {
     private UserRepository userRepository;
 
     @Override
-    public User findById(Long id) {
-        return userRepository.findById(id).orElseThrow(NoSuchElementException::new);
+    public UserDTO findById(Long id) {
+        User user = userRepository.findById(id).orElseThrow(NoSuchElementException::new);
+        return new UserDTO(user.getName(), user.getAccount(), user.getFeatures(), user.getCard(), user.getNews());
     }
 
     @Override
-    public User create(User user) {
-        if(userRepository.existsById(user.getId()))
-            throw new IllegalArgumentException("This User ID already exists.");
-        if(userRepository.existsByAccountNumber(user.getAccount().getNumber()))
+    public UserDTO create(UserDTO user) {
+        if(userRepository.existsByAccountNumber(user.account().getNumber()))
             throw new IllegalArgumentException(("This Account Number already exists."));
-        return userRepository.save(user);
+        User userModel = new User();
+        BeanUtils.copyProperties(user, userModel);
+        userRepository.save(userModel);
+        return user;
     }
 }
